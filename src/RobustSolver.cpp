@@ -22,6 +22,8 @@ author: Yun Chang, Luca Carlone
 #include "KimeraRPGO/outlier/Pcm.h"
 #include "KimeraRPGO/utils/TypeUtils.h"
 
+#include <pose4dof/Pose4DoF.h>
+
 namespace KimeraRPGO {
 
 typedef std::pair<gtsam::NonlinearFactorGraph, gtsam::Values> GraphAndValues;
@@ -51,6 +53,14 @@ RobustSolver::RobustSolver(const RobustSolverParams& params)
                                          params.multirobot_align_gnc_prob,
                                          params.specialSymbols);
     } break;
+    case OutlierRemovalMethod::PCM4DoF: {
+      outlier_removal_ =
+          KimeraRPGO::make_unique<Pcm4DoF>(params.pcm_params,
+                                           params.multirobot_align_method,
+                                           params.multirobot_align_gnc_prob,
+                                           params.specialSymbols);
+    } break;
+
     case OutlierRemovalMethod::PCM_Simple2D: {
       outlier_removal_ =
           KimeraRPGO::make_unique<PcmSimple2D>(params.pcm_params,
@@ -65,6 +75,14 @@ RobustSolver::RobustSolver(const RobustSolverParams& params)
                                                params.multirobot_align_gnc_prob,
                                                params.specialSymbols);
     } break;
+    case OutlierRemovalMethod::PCM_Simple4DoF: {
+      outlier_removal_ =
+          KimeraRPGO::make_unique<PcmSimple4DoF>(params.pcm_params,
+                                                 params.multirobot_align_method,
+                                                 params.multirobot_align_gnc_prob,
+                                                 params.specialSymbols);
+    } break;
+
     default: {
       log<WARNING>("Undefined outlier removal method");
       exit(EXIT_FAILURE);

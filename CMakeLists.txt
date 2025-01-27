@@ -15,6 +15,7 @@ IF(APPLE)
 ENDIF()
 
 find_package(GTSAM REQUIRED)
+find_package(pose4dof REQUIRED)
 
 ###########################################################################
 # Compile
@@ -41,7 +42,7 @@ target_include_directories(KimeraRPGO PUBLIC
 
 target_link_libraries(KimeraRPGO
   PUBLIC
-    gtsam
+    gtsam pose4dof::pose4dof
   PRIVATE
     rpgo_max_clique
 )

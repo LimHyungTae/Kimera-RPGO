@@ -36,6 +36,8 @@ author: Yun Chang, Luca Carlone
 #include "KimeraRPGO/utils/GeometryUtils.h"
 #include "KimeraRPGO/utils/GraphUtils.h"
 
+#include <pose4dof/Pose4DoF.h>
+
 namespace KimeraRPGO {
 
 /* ------------------------------------------------------------------------ */
@@ -1166,7 +1168,9 @@ class Pcm : public OutlierRemoval {
 
 typedef Pcm<gtsam::Pose2, PoseWithCovariance> Pcm2D;
 typedef Pcm<gtsam::Pose3, PoseWithCovariance> Pcm3D;
+typedef Pcm<gtsam::Pose4DoF, PoseWithCovariance> Pcm4DoF;
 typedef Pcm<gtsam::Pose2, PoseWithNode> PcmSimple2D;
 typedef Pcm<gtsam::Pose3, PoseWithNode> PcmSimple3D;
+typedef Pcm<gtsam::Pose4DoF, PoseWithNode> PcmSimple4DoF;
 
 }  // namespace KimeraRPGO

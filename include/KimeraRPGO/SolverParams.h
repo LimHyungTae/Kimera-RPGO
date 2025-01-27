@@ -17,8 +17,10 @@ enum class OutlierRemovalMethod {
   NONE,  // no outlier rejection
   PCM2D,
   PCM3D,
+  PCM4DoF,
   PCM_Simple2D,
-  PCM_Simple3D
+  PCM_Simple3D,
+  PCM_Simple4DoF
 };
 
 enum class Verbosity { UPDATE, QUIET, VERBOSE };
