@@ -1,122 +1,102 @@
-cmake_minimum_required (VERSION 3.5)
-project(kimera_rpgo VERSION 1.0 LANGUAGES CXX)
+cmake_minimum_required (VERSION 3.14)
+project(kimera_rpgo VERSION 2.0.0)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-IF(APPLE)
-    # Fix linking on 10.14+. See https://stackoverflow.com/questions/54068035
-    LINK_DIRECTORIES(/usr/local/lib)
-ENDIF()
+add_compile_options(-Wall -Wextra -fPIC)
+
+# Options
+option(KIMERA_RPGO_BUILD_TESTS "Build tests" ON)
+option(KIMERA_RPGO_BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
+
+# Cache Variables
+if (NOT KIMERA_RPGO_PYTHON_VERSION)
+    set(KIMERA_RPGO_PYTHON_VERSION "" CACHE STRING "Python version to use for kimera_rpgo bindings.")
+endif ()
 
 find_package(GTSAM REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 ###########################################################################
 # Compile
-add_library(KimeraRPGO SHARED
-  src/GenericSolver.cpp
-  src/RobustSolver.cpp
-  src/Logger.cpp
-  include/KimeraRPGO/SolverParams.h )
-include_directories(include)
-# Add source code for max clique finder
-add_subdirectory(include/KimeraRPGO/max_clique_finder)
-# Add source for outlier rejection stuff
-add_subdirectory(include/KimeraRPGO/outlier)
-# Add source for utils
-add_subdirectory(include/KimeraRPGO/utils)
-add_subdirectory(src/utils)
+add_library(${PROJECT_NAME})
 
-target_include_directories(KimeraRPGO PUBLIC
-  ${GTSAM_INCLUDE_DIR}
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-  # INSTALL
-  $<INSTALL_INTERFACE:include>
+target_include_directories(${PROJECT_NAME}
+  PUBLIC ${GTSAM_INCLUDE_DIR}
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         # INSTALL
+         $<INSTALL_INTERFACE:include>
+  PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 )
 
-target_link_libraries(KimeraRPGO
-  PUBLIC
-    gtsam
-  PRIVATE
-    rpgo_max_clique
+target_link_libraries(
+    ${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json gtsam
 )
 
-target_compile_options(KimeraRPGO
-  PRIVATE -Wall -pipe
-)
+add_subdirectory(src)
 
 ###########################################################################
 # Define executables
-add_executable(RpgoReadG2o examples/RpgoReadG2o.cpp)
-target_link_libraries(RpgoReadG2o KimeraRPGO)
-add_executable(RpgoReadG2oIncremental examples/RpgoReadG2oIncremental.cpp)
-target_link_libraries(RpgoReadG2oIncremental KimeraRPGO)
-add_executable(GenerateTrajectories examples/GenerateTrajectories.cpp)
-target_link_libraries(GenerateTrajectories gtsam)
 
 ###########################################################################
 # Tests
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/UnitTesting.cmake)
-add_subdirectory(tests)
-set(TEST_DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
-configure_file(tests/test_config.h.in tests/test_config.h)
+if (KIMERA_RPGO_BUILD_TESTS)
+  add_subdirectory(tests)
+  set(TEST_DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
+  configure_file(tests/test_config.h.in tests/test_config.h)
+endif()
+
+##########################################################################
+# Python Bindings
+if (KIMERA_RPGO_BUILD_PYTHON_BINDINGS)
+    message(STATUS "RPGO-tools Python binding will be built.")
+  add_subdirectory(python)
+endif()
 
 ###########################################################################
 # Installation
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/KimeraRPGO)
+include(CMakePackageConfigHelpers)
 
-install(TARGETS KimeraRPGO
-  EXPORT kimera-rpgo-export
+add_library(
+  kimera_rpgo::${PROJECT_NAME} ALIAS ${PROJECT_NAME}
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/kimera_rpgoConfigVersion.cmake VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+  ${CMAKE_CURRENT_LIST_DIR}/cmake/kimera_rpgoConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/kimera_rpgoConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kimera_rpgo
+)
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT kimera_rpgo-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-install(EXPORT kimera-rpgo-export
-  FILE
-    KimeraRPGOTargets.cmake
-  DESTINATION
-    ${INSTALL_CONFIGDIR}
-)
-# Install header files
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.h")
 
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/KimeraRPGOConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(
+  EXPORT kimera_rpgo-targets
+  FILE kimera_rpgoTargets.cmake
+  NAMESPACE kimera_rpgo::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kimera_rpgo
 )
-# Create KimeraRPGOConfig.cmake with extra info from KimeraRPGOConfig.cmake.in
-# This file is necessary to find_package the library KimeraRPGO.
-configure_package_config_file(
-  ${CMAKE_CURRENT_LIST_DIR}/cmake/KimeraRPGOConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/KimeraRPGOConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
-## Install the config and configversion
+
 install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/KimeraRPGOConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/KimeraRPGOConfigVersion.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/kimera_rpgoConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/kimera_rpgoConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kimera_rpgo
 )
-
-################################################################################
-# Print configuration variables
-message(STATUS "===============================================================")
-message(STATUS "================  Configuration Options  ======================")
-message(STATUS "CMAKE_CXX_COMPILER_ID type                : ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "CMAKE_CXX_COMPILER_VERSION                : ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "Build flags                                               ")
-if(NOT MSVC AND NOT XCODE_VERSION)
-    message(STATUS "  Build type                              : ${CMAKE_BUILD_TYPE}")
-    if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release" AND NOT ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-      message(WARNING "  Build type is not in RELEASE, this will slow down the code.")
-    endif()
-    message(STATUS "  C compilation flags (Release)           : ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
-    message(STATUS "  C++ compilation flags (Release)         : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
-endif()

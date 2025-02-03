@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>kimera_rpgo</name>
-  <version>0.0.1</version>
+  <version>2.0.0</version>
   <description>A library for robust pose graph optimization using gtsam</description>
 
   <maintainer email="yunchang@mit.edu"></maintainer>

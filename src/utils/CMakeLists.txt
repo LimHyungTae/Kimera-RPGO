@@ -1,5 +1,7 @@
-# Add source code for kimera_rpgo
-target_sources(KimeraRPGO
-	PRIVATE
-	"${CMAKE_CURRENT_LIST_DIR}/GraphUtils.cpp"
+target_sources(
+  ${PROJECT_NAME}
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/g2o.cpp
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/types.cpp
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/loss_functions.cpp
 )
