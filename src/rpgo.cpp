@@ -108,6 +108,9 @@ void Rpgo::addValues(const gtsam::Values& values) {
       continue;
     }
     initial_.insert(key_value.key, key_value.value);
+
+    // TODO(Yun): interpolate then add?
+    result_.insert(key_value.key, key_value.value);
   }
 }
 

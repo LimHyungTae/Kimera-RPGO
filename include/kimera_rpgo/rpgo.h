@@ -64,7 +64,13 @@ class Rpgo {
 
   inline const gtsam::Values& getResult() const { return result_; }
 
-  inline const std::vector<double>& getInlierWeights() const { return inlier_weights_; }
+  inline const gtsam::NonlinearFactorGraph& getFactors() const {
+    return factors_;
+  }
+
+  inline const std::vector<double>& getInlierWeights() const {
+    return inlier_weights_;
+  }
 
   inline const SolverLog& getSolverLog() const { return solver_->getLog(); }
 
