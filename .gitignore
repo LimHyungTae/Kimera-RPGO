@@ -9,3 +9,7 @@
 % Ignore media files
 *.png
 *.mp4
+
+.cache/
+
+compile_commands.json
