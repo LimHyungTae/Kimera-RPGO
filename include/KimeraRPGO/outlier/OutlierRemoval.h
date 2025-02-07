@@ -49,6 +49,8 @@ class OutlierRemoval {
    */
   void setQuiet() { debug_ = false; }
 
+  void setVerbose() { debug_ = true; }
+
   /*! \brief Set log folder
    */
   void logOutput(const std::string& output_folder) {
