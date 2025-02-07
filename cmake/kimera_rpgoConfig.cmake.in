@@ -3,6 +3,7 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(nlohmann_json REQUIRED)
 find_dependency(GTSAM REQUIRED)
+find_dependency(pose4dof REQUIRED)
 
 if(NOT TARGET kimera_rpgo::kimera_rpgo)
   include("${kimera_rpgo_CMAKE_DIR}/kimera_rpgoTargets.cmake")

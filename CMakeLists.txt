@@ -22,7 +22,7 @@ endif ()
 
 find_package(GTSAM REQUIRED)
 find_package(nlohmann_json REQUIRED)
-
+find_package(pose4dof REQUIRED)
 ###########################################################################
 # Compile
 add_library(${PROJECT_NAME})
@@ -36,7 +36,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(
-    ${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json gtsam
+    ${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json gtsam pose4dof::pose4dof
 )
 
 add_subdirectory(src)
